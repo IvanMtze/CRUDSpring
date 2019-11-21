@@ -5,12 +5,16 @@
  */
 package com.example.EjemploUV2.Empleado;
 
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,21 +24,45 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class EmpleadoController {
-    @Autowired
     
+    @Autowired
     EmpleadoRepository er;
     
     @GetMapping(value = "/empleado", produces = "application/json")
-    public EmpleadoModel getClient(){
-        Optional<EmpleadoModel> dep = er.findById((long)2);
-        return dep.get();
+    public ResponseEntity<List<EmpleadoModel>> getClient(){
+       return ResponseEntity.ok(er.findAll());
     }
     
-    @PostMapping(value = "/empleado")
-    public EmpleadoModel addEmpleado(@Valid @RequestBody EmpleadoModel empleado){
-        return er.save(empleado);
+    @GetMapping(value = "/empleado/{id}", produces = "application/json")
+    public ResponseEntity<EmpleadoModel> getClientById(@PathVariable Long id){
+        if(!er.findById(id).isPresent()){
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<EmpleadoModel> emp = er.findById(id);
+        return ResponseEntity.ok(emp.get());
     }
     
-    @DeleteMapping(value = "/empleado")
-    public EmpleadoModel
+    @PostMapping(value = "/empleado", produces = "application/json")
+    public ResponseEntity<EmpleadoModel> addEmpleado(@Valid @RequestBody EmpleadoModel empleado){
+        return ResponseEntity.ok(er.save(empleado));
+    }
+    
+    @DeleteMapping("/empleado/{id}")
+    public ResponseEntity<EmpleadoModel> deleteEmpleado(@PathVariable Long id){
+        if(!er.findById(id).isPresent()){
+            return ResponseEntity.badRequest().build();
+        }
+        er.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/empleado/{id}")
+    public ResponseEntity<EmpleadoModel> update(@PathVariable Long id, @Valid @RequestBody EmpleadoModel empleado){
+        if(!er.findById(id).isPresent()){
+            return  ResponseEntity.badRequest().build();
+        }
+        er.deleteById(id);
+        er.save(empleado);
+        return ResponseEntity.ok().build();
+    }
 }
